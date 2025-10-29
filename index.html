@@ -16,40 +16,52 @@
 
     img {
       width: 300px;
-      transition: transform 0.1s ease;
+      transition: opacity 0.1s ease;
+      position: absolute;
     }
   </style>
 </head>
 <body>
-  <img id="avatar" src="aurora.png" alt="Aurora Talking Avatar" />
+  <!-- Two images stacked on top of each other -->
+  <img id="closed" src="aurora.png" alt="Aurora closed mouth">
+  <img id="open" src="aurora_talk.png" alt="Aurora open mouth" style="opacity: 0">
 
   <script>
-    const avatar = document.getElementById("avatar");
-
-    // Ask for microphone access
-    navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(stream => {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    async function startTalking() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const audioContext = new AudioContext();
         const source = audioContext.createMediaStreamSource(stream);
         const analyser = audioContext.createAnalyser();
         const dataArray = new Uint8Array(analyser.frequencyBinCount);
 
         source.connect(analyser);
 
-        function animateMouth() {
+        const openImg = document.getElementById("open");
+        const closedImg = document.getElementById("closed");
+
+        function detectVolume() {
           analyser.getByteFrequencyData(dataArray);
           let volume = dataArray.reduce((a, b) => a + b) / dataArray.length;
 
-          // Map volume to scale (more sound = bigger)
-          let scale = 1 + (volume / 300);
-          avatar.style.transform = `scaleY(${scale})`;
+          if (volume > 20) { // Talking threshold
+            openImg.style.opacity = 1;
+            closedImg.style.opacity = 0;
+          } else {
+            openImg.style.opacity = 0;
+            closedImg.style.opacity = 1;
+          }
 
-          requestAnimationFrame(animateMouth);
+          requestAnimationFrame(detectVolume);
         }
 
-        animateMouth();
-      })
-      .catch(err => alert('Microphone access denied or unavailable: ' + err));
+        detectVolume();
+      } catch (err) {
+        alert('Microphone access denied or unavailable: ' + err);
+      }
+    }
+
+    startTalking();
   </script>
 </body>
 </html>
