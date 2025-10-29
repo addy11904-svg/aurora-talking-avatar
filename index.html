@@ -6,81 +6,48 @@
   <title>Aurora Talking Avatar</title>
   <style>
     body {
-      background-color: #111;
+      background-color: #000;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
+      margin: 0;
       overflow: hidden;
     }
-
-    #avatar-container {
-      position: relative;
-      width: 400px;
-      height: auto;
-    }
-
     img {
-      width: 100%;
+      width: 300px;
       position: absolute;
-      top: 0;
-      left: 0;
-      transition: opacity 0.25s ease-in-out;
-    }
-
-    #open {
-      opacity: 0;
+      transition: opacity 0.15s ease;
     }
   </style>
 </head>
 <body>
-  <div id="avatar-container">
-    <img id="closed" src="aurora.mouthclose.png" alt="Aurora closed mouth" />
-    <img id="open" src="aurora.mouthopen.png" alt="Aurora open mouth" />
-  </div>
+  <!-- Two images stacked on top of each other -->
+  <img id="closed" src="aurora.mouthclose.png" alt="Aurora closed mouth" />
+  <img id="open" src="aurora.mouthopen.png" alt="Aurora open mouth" style="opacity: 0" />
 
   <script>
-    const openMouth = document.getElementById("open");
-    const closedMouth = document.getElementById("closed");
+    const openImg = document.getElementById("open");
+    const closedImg = document.getElementById("closed");
+    let lastState = "close";
 
-    let lastChange = 0;
-    let smoothVolume = 0;
-    const threshold = 0.1; // Adjust if needed (0.05–0.2 range)
-    const debounceTime = 150; // milliseconds between mouth toggles
+    function updateMouth(volume) {
+      if (volume > 0.1 && lastState !== "open") {
+        openImg.style.opacity = 1;
+        closedImg.style.opacity = 0;
+        lastState = "open";
+      } else if (volume <= 0.1 && lastState !== "close") {
+        openImg.style.opacity = 0;
+        closedImg.style.opacity = 1;
+        lastState = "close";
+      }
+    }
 
-    navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(stream => {
-        const audioCtx = new AudioContext();
-        const source = audioCtx.createMediaStreamSource(stream);
-        const analyser = audioCtx.createAnalyser();
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
-        source.connect(analyser);
-
-        function detectVolume() {
-          analyser.getByteFrequencyData(dataArray);
-          const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length / 255;
-
-          // Smooth the volume readings
-          smoothVolume = 0.8 * smoothVolume + 0.2 * avg;
-
-          const now = Date.now();
-          if (now - lastChange > debounceTime) {
-            if (smoothVolume > threshold) {
-              openMouth.style.opacity = 1;
-              closedMouth.style.opacity = 0;
-            } else {
-              openMouth.style.opacity = 0;
-              closedMouth.style.opacity = 1;
-            }
-            lastChange = now;
-          }
-
-          requestAnimationFrame(detectVolume);
-        }
-
-        detectVolume();
-      })
-      .catch(err => alert("Microphone access denied or unavailable: " + err));
+    // Simulated talking (random volume)
+    setInterval(() => {
+      const volume = Math.random();
+      updateMouth(volume);
+    }, 150); // adjust this speed if needed
   </script>
 </body>
 </html>
