@@ -63,5 +63,26 @@
 
     startTalking();
   </script>
+  let openImg = document.getElementById("open");
+let closedImg = document.getElementById("closed");
+let lastState = "close";
+  function updateMouth(volume) {
+  if (volume > 0.1 && lastState !== "open") {
+    openImg.style.opacity = 1;
+    closedImg.style.opacity = 0;
+    lastState = "open";
+  } else if (volume <= 0.1 && lastState !== "close") {
+    openImg.style.opacity = 0;
+    closedImg.style.opacity = 1;
+    lastState = "close";
+  }
+}
+
+// Example of loop (replace your existing one)
+setInterval(() => {
+  // simulate volume detection or use your real audio logic
+  let volume = Math.random(); 
+  updateMouth(volume);
+}, 150); // try 200 if it still flickers
 </body>
 </html>
