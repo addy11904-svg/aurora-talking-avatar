@@ -1,98 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Aurora Talking Avatar</title>
-<style>
-  body {
-    margin: 0;
-    background: #111;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
-
-  .avatar {
-    position: relative;
-    width: 400px;
-    height: auto;
-  }
-
-  .avatar img {
-    position: absolute;
-    width: 100%;
-    transition: opacity 0.12s ease-in-out;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aurora Talking Avatar</title>
+  <style>
+    body {
+      background-color: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+    img {
+      width: 300px;
+      position: absolute;
+      transition: opacity 0.15s ease;
+    }
+  </style>
 </head>
 <body>
-  <div class="avatar">
-    <!-- 👇 Use your PNGs here -->
-    <img id="open" src="aurora_open.png" style="opacity: 1;" />
-    <img id="closed" src="aurora_closed.png" style="opacity: 0;" />
-    <img id="blink" src="aurora_blink.png" style="opacity: 0;" />
-  </div>
+  <!-- Two images stacked on top of each other -->
+  <img id="closed" src="aurora.mouthclose.png" alt="Aurora closed mouth" />
+  <img id="open" src="aurora.mouthopen.png" alt="Aurora open mouth" style="opacity: 0" />
 
-<script>
-const openImg = document.getElementById("open");
-const closedImg = document.getElementById("closed");
-const blinkImg = document.getElementById("blink");
+  <script>
+    const openImg = document.getElementById("open");
+    const closedImg = document.getElementById("closed");
+    let lastState = "close";
 
-let isBlinking = false;
-
-// 🎤 Mouth movement logic
-navigator.mediaDevices.getUserMedia({ audio: true })
-  .then(stream => {
-    const audioCtx = new AudioContext();
-    const analyser = audioCtx.createAnalyser();
-    const mic = audioCtx.createMediaStreamSource(stream);
-    mic.connect(analyser);
-    const data = new Uint8Array(analyser.frequencyBinCount);
-
-    function detectVolume() {
-      analyser.getByteFrequencyData(data);
-      const volume = data.reduce((a, b) => a + b, 0) / data.length;
-
-      if (!isBlinking) {
-        if (volume > 30) {
-          openImg.style.opacity = 0;
-          closedImg.style.opacity = 1;
-        } else {
-          openImg.style.opacity = 1;
-          closedImg.style.opacity = 0;
-        }
+    function updateMouth(volume) {
+      if (volume > 0.1 && lastState !== "open") {
+        openImg.style.opacity = 1;
+        closedImg.style.opacity = 0;
+        lastState = "open";
+      } else if (volume <= 0.1 && lastState !== "close") {
+        openImg.style.opacity = 0;
+        closedImg.style.opacity = 1;
+        lastState = "close";
       }
-
-      requestAnimationFrame(detectVolume);
     }
-    detectVolume();
-  })
-  .catch(err => console.error("Mic error:", err));
 
-// 👁️ Blink logic
-function blink() {
-  isBlinking = true;
-  openImg.style.opacity = 0;
-  closedImg.style.opacity = 0;
-  blinkImg.style.opacity = 1;
-
-  // eyes closed duration
-  setTimeout(() => {
-    blinkImg.style.opacity = 0;
-    openImg.style.transition = "opacity 0.25s ease-out"; // smooth reopen
-    openImg.style.opacity = 1;
-    isBlinking = false;
-
-    // random next blink (4–7 seconds)
-    const nextBlink = 4000 + Math.random() * 3000;
-    setTimeout(blink, nextBlink);
-  }, 120);
-}
-
-// start after a moment
-setTimeout(blink, 3000);
-</script>
+    // Simulated talking (random volume)
+    setInterval(() => {
+      const volume = Math.random();
+      updateMouth(volume);
+    }, 150); // adjust this speed if needed
+  </script>
 </body>
 </html>
