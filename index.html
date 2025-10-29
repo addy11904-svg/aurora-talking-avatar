@@ -6,83 +6,81 @@
   <title>Aurora Talking Avatar</title>
   <style>
     body {
-      background: #111;
+      background-color: #111;
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       height: 100vh;
-      margin: 0;
+      overflow: hidden;
+    }
+
+    #avatar-container {
+      position: relative;
+      width: 400px;
+      height: auto;
     }
 
     img {
-      width: 300px;
-      transition: opacity 0.1s ease;
+      width: 100%;
       position: absolute;
+      top: 0;
+      left: 0;
+      transition: opacity 0.25s ease-in-out;
+    }
+
+    #open {
+      opacity: 0;
     }
   </style>
 </head>
 <body>
-  <!-- Two images stacked on top of each other -->
-  <img id="closed" src="aurora.png" alt="Aurora closed mouth">
-  <img id="open" src="aurora_talk.png" alt="Aurora open mouth" style="opacity: 0">
+  <div id="avatar-container">
+    <img id="closed" src="aurora.mouthclose.png" alt="Aurora closed mouth" />
+    <img id="open" src="aurora.mouthopen.png" alt="Aurora open mouth" />
+  </div>
 
   <script>
-    async function startTalking() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const audioContext = new AudioContext();
-        const source = audioContext.createMediaStreamSource(stream);
-        const analyser = audioContext.createAnalyser();
+    const openMouth = document.getElementById("open");
+    const closedMouth = document.getElementById("closed");
+
+    let lastChange = 0;
+    let smoothVolume = 0;
+    const threshold = 0.1; // Adjust if needed (0.05–0.2 range)
+    const debounceTime = 150; // milliseconds between mouth toggles
+
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        const audioCtx = new AudioContext();
+        const source = audioCtx.createMediaStreamSource(stream);
+        const analyser = audioCtx.createAnalyser();
         const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
         source.connect(analyser);
-
-        const openImg = document.getElementById("open");
-        const closedImg = document.getElementById("closed");
 
         function detectVolume() {
           analyser.getByteFrequencyData(dataArray);
-          let volume = dataArray.reduce((a, b) => a + b) / dataArray.length;
+          const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length / 255;
 
-          if (volume > 20) { // Talking threshold
-            openImg.style.opacity = 1;
-            closedImg.style.opacity = 0;
-          } else {
-            openImg.style.opacity = 0;
-            closedImg.style.opacity = 1;
+          // Smooth the volume readings
+          smoothVolume = 0.8 * smoothVolume + 0.2 * avg;
+
+          const now = Date.now();
+          if (now - lastChange > debounceTime) {
+            if (smoothVolume > threshold) {
+              openMouth.style.opacity = 1;
+              closedMouth.style.opacity = 0;
+            } else {
+              openMouth.style.opacity = 0;
+              closedMouth.style.opacity = 1;
+            }
+            lastChange = now;
           }
 
           requestAnimationFrame(detectVolume);
         }
 
         detectVolume();
-      } catch (err) {
-        alert('Microphone access denied or unavailable: ' + err);
-      }
-    }
-
-    startTalking();
+      })
+      .catch(err => alert("Microphone access denied or unavailable: " + err));
   </script>
-  let openImg = document.getElementById("open");
-let closedImg = document.getElementById("closed");
-let lastState = "close";
-  function updateMouth(volume) {
-  if (volume > 0.1 && lastState !== "open") {
-    openImg.style.opacity = 1;
-    closedImg.style.opacity = 0;
-    lastState = "open";
-  } else if (volume <= 0.1 && lastState !== "close") {
-    openImg.style.opacity = 0;
-    closedImg.style.opacity = 1;
-    lastState = "close";
-  }
-}
-
-// Example of loop (replace your existing one)
-setInterval(() => {
-  // simulate volume detection or use your real audio logic
-  let volume = Math.random(); 
-  updateMouth(volume);
-}, 150); // try 200 if it still flickers
 </body>
 </html>
