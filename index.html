@@ -49,5 +49,23 @@
       updateMouth(volume);
     }, 150); // adjust this speed if needed
   </script>
+  const blinkImg = document.createElement("img");
+  blinkImg.src = "aurora.blink.png";
+  blinkImg.style.position = "absolute";
+  blinkImg.style.width = "300px";
+  blinkImg.style.opacity = 0;
+  document.body.appendChild(blinkImg);
+
+  function blink() {
+    blinkImg.style.opacity = 1;
+    setTimeout(() => {
+      blinkImg.style.opacity = 0;
+    }, 150); // how long the blink lasts
+  }
+
+  setInterval(() => {
+    blink();
+  }, 4000 + Math.random() * 2000); // blinks every 4–6 seconds
+</script>
 </body>
 </html>
