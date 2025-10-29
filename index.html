@@ -69,5 +69,50 @@
     // Start blinking animation
     animateAurora();
   </script>
+  const openImg = document.getElementById("open");
+const closedImg = document.getElementById("closed");
+const blinkImg = document.getElementById("blink");
+
+let lastState = "close";
+let isBlinking = false;
+
+// --- Mouth Animation (talking effect) --- //
+function updateMouth(volume) {
+  if (volume > 0.1 && lastState !== "open") {
+    openImg.style.opacity = 1;
+    closedImg.style.opacity = 0;
+    lastState = "open";
+  } else if (volume <= 0.1 && lastState !== "close") {
+    openImg.style.opacity = 0;
+    closedImg.style.opacity = 1;
+    lastState = "close";
+  }
+}
+
+// --- Simulate talking with random volume --- //
+setInterval(() => {
+  const volume = Math.random();
+  updateMouth(volume);
+}, 150);
+
+// --- Blink Animation --- //
+function blink() {
+  if (isBlinking) return;
+  isBlinking = true;
+  blinkImg.style.opacity = 1;
+  setTimeout(() => {
+    blinkImg.style.opacity = 0;
+    isBlinking = false;
+  }, 150); // eyes stay closed for 0.15s
+}
+
+// --- Blink every few seconds randomly --- //
+setInterval(() => {
+  if (!isBlinking) blink();
+}, 3000 + Math.random() * 2500);
+</script>
 </body>
+  <img id="closed" src="aurora.mouthclose.png" alt="Aurora closed mouth">
+  <img id="open" src="aurora.mouthopen.png" alt="Aurora open mouth" style="opacity: 0">
+  <img id="blink" src="aurora.blink.png" alt="Aurora blinking" style="opacity: 0">
 </html>
