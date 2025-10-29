@@ -3,69 +3,71 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Aurora Talking Avatar</title>
+  <title>Aurora Animation</title>
   <style>
     body {
-      background-color: #000;
+      background: #111;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
       margin: 0;
-      overflow: hidden;
     }
+
     img {
-      width: 300px;
-      position: absolute;
-      transition: opacity 0.15s ease;
+      width: 450px;
+      image-rendering: auto;
+      transition: opacity 0.08s ease-in-out;
+    }
+
+    .hidden {
+      opacity: 0;
     }
   </style>
 </head>
 <body>
-  <!-- Two images stacked on top of each other -->
-  <img id="closed" src="aurora.mouthclose.png" alt="Aurora closed mouth" />
-  <img id="open" src="aurora.mouthopen.png" alt="Aurora open mouth" style="opacity: 0" />
+  <img id="aurora" src="aurora.mouthclose.png" alt="Aurora" />
 
   <script>
-    const openImg = document.getElementById("open");
-    const closedImg = document.getElementById("closed");
-    let lastState = "close";
+    const aurora = document.getElementById("aurora");
 
-    function updateMouth(volume) {
-      if (volume > 0.1 && lastState !== "open") {
-        openImg.style.opacity = 1;
-        closedImg.style.opacity = 0;
-        lastState = "open";
-      } else if (volume <= 0.1 && lastState !== "close") {
-        openImg.style.opacity = 0;
-        closedImg.style.opacity = 1;
-        lastState = "close";
-      }
+    // Preload images
+    const frames = [
+      "aurora.mouthclose.png",
+      "aurora.mouthopen.png",
+      "aurora.blink.png"
+    ];
+    const cache = {};
+    frames.forEach(src => {
+      const img = new Image();
+      img.src = src;
+      cache[src] = img;
+    });
+
+    // Animation loop
+    let current = "mouthclose";
+    function animateAurora() {
+      // Faster blink (every 1.5–3 seconds)
+      const blinkTime = Math.random() * 1500 + 1500;
+      setTimeout(() => {
+        aurora.src = "aurora.blink.png";
+        setTimeout(() => aurora.src = cache[`aurora.${current}.png`].src, 120);
+        animateAurora();
+      }, blinkTime);
     }
 
-    // Simulated talking (random volume)
+    // Mouth animation (every 1 second)
     setInterval(() => {
-      const volume = Math.random();
-      updateMouth(volume);
-    }, 150); // adjust this speed if needed
+      current = current === "mouthclose" ? "mouthopen" : "mouthclose";
+      aurora.classList.add("hidden");
+      setTimeout(() => {
+        aurora.src = cache[`aurora.${current}.png`].src;
+        aurora.classList.remove("hidden");
+      }, 80);
+    }, 1000);
+
+    // Start blinking animation
+    animateAurora();
   </script>
-  const blinkImg = document.createElement("img");
-  blinkImg.src = "aurora.blink.png";
-  blinkImg.style.position = "absolute";
-  blinkImg.style.width = "300px";
-  blinkImg.style.opacity = 0;
-  document.body.appendChild(blinkImg);
-
-  function blink() {
-    blinkImg.style.opacity = 1;
-    setTimeout(() => {
-      blinkImg.style.opacity = 0;
-    }, 150); // how long the blink lasts
-  }
-
-  setInterval(() => {
-    blink();
-  }, 4000 + Math.random() * 2000); // blinks every 4–6 seconds
-</script>
 </body>
 </html>
