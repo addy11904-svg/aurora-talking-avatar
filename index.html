@@ -76,6 +76,55 @@ setInterval(() => {
   blink();
 }, 4000 + Math.random() * 2000);
 </script>
+  const openImg = document.getElementById("open");
+const closedImg = document.getElementById("closed");
+const blinkImg = document.getElementById("blink");
+
+let isBlinking = false; // prevent mouth movement during blink
+
+navigator.mediaDevices.getUserMedia({ audio: true })
+  .then(stream => {
+    const audioCtx = new AudioContext();
+    const analyser = audioCtx.createAnalyser();
+    const mic = audioCtx.createMediaStreamSource(stream);
+    mic.connect(analyser);
+    const data = new Uint8Array(analyser.frequencyBinCount);
+
+    function detectVolume() {
+      analyser.getByteFrequencyData(data);
+      const volume = data.reduce((a, b) => a + b, 0) / data.length;
+
+      if (!isBlinking) { // only move mouth when not blinking
+        if (volume > 30) {
+          openImg.style.opacity = 0;
+          closedImg.style.opacity = 1;
+        } else {
+          openImg.style.opacity = 1;
+          closedImg.style.opacity = 0;
+        }
+      }
+      requestAnimationFrame(detectVolume);
+    }
+    detectVolume();
+  })
+  .catch(err => console.error("Mic error:", err));
+
+function blink() {
+  isBlinking = true;
+  openImg.style.opacity = 0;
+  closedImg.style.opacity = 0;
+  blinkImg.style.opacity = 1;
+  setTimeout(() => {
+    blinkImg.style.opacity = 0;
+    isBlinking = false;
+  }, 120); // blink duration
+}
+
+// random blink every few seconds
+setInterval(() => {
+  blink();
+}, 4000 + Math.random() * 2000);
+</script>
 
 </body>
 </html>
