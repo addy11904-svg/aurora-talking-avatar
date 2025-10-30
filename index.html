@@ -20,16 +20,18 @@
       height: 90vh;
       position: absolute;
       transition: opacity 0.1s ease-in-out;
+      image-rendering: crisp-edges;
     }
   </style>
 </head>
 <body>
+  <!-- Aurora Layers -->
   <img id="base" src="aurora.mouthclose.png" alt="Aurora" />
   <img id="mouth" src="aurora.mouthopen.png" alt="Aurora mouth open" style="opacity: 0;" />
   <img id="blink" src="aurora.blink.png" alt="Aurora blink" style="opacity: 0;" />
 
   <script>
-    // Blinking
+    // 🌟 Blinking animation
     function blink() {
       const blinkImg = document.getElementById('blink');
       blinkImg.style.opacity = 1;
@@ -38,18 +40,32 @@
     }
     setTimeout(blink, 2000);
 
-    // Talking (simulate speech loop)
-    let talking = true;
-    function talk() {
-      const mouth = document.getElementById('mouth');
-      if (talking) {
-        mouth.style.opacity = mouth.style.opacity == 1 ? 0 : 1;
-      } else {
-        mouth.style.opacity = 0;
-      }
-      setTimeout(talk, 200);
-    }
-    talk();
+    // 🎤 Talking with microphone input
+    const mouth = document.getElementById('mouth');
+
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioContext.createMediaStreamSource(stream);
+        const analyser = audioContext.createAnalyser();
+        analyser.fftSize = 512;
+        source.connect(analyser);
+
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+        function animateMouth() {
+          analyser.getByteFrequencyData(dataArray);
+          const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+          mouth.style.opacity = volume > 40 ? 1 : 0; // open mouth if loud enough
+          requestAnimationFrame(animateMouth);
+        }
+
+        animateMouth();
+      })
+      .catch(err => {
+        console.error('Mic error:', err);
+        alert('Please allow microphone access to make Aurora talk.');
+      });
   </script>
 </body>
 </html>
