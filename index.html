@@ -14,40 +14,42 @@
       margin: 0;
       overflow: hidden;
     }
+
     img {
-      width: 300px;
+      width: auto;
+      height: 90vh;
       position: absolute;
-      transition: opacity 0.15s ease;
+      transition: opacity 0.1s ease-in-out;
     }
   </style>
 </head>
 <body>
-  <!-- Two images stacked on top of each other -->
-  <img id="closed" src="aurora.mouthclose.png" alt="Aurora closed mouth" />
-  <img id="open" src="aurora.mouthopen.png" alt="Aurora open mouth" style="opacity: 0" />
+  <img id="base" src="aurora.mouthclose.png" alt="Aurora" />
+  <img id="mouth" src="aurora.mouthopen.png" alt="Aurora mouth open" style="opacity: 0;" />
+  <img id="blink" src="aurora.blink.png" alt="Aurora blink" style="opacity: 0;" />
 
   <script>
-    const openImg = document.getElementById("open");
-    const closedImg = document.getElementById("closed");
-    let lastState = "close";
-
-    function updateMouth(volume) {
-      if (volume > 0.1 && lastState !== "open") {
-        openImg.style.opacity = 1;
-        closedImg.style.opacity = 0;
-        lastState = "open";
-      } else if (volume <= 0.1 && lastState !== "close") {
-        openImg.style.opacity = 0;
-        closedImg.style.opacity = 1;
-        lastState = "close";
-      }
+    // Blinking
+    function blink() {
+      const blinkImg = document.getElementById('blink');
+      blinkImg.style.opacity = 1;
+      setTimeout(() => (blinkImg.style.opacity = 0), 150);
+      setTimeout(blink, 4000 + Math.random() * 4000);
     }
+    setTimeout(blink, 2000);
 
-    // Simulated talking (random volume)
-    setInterval(() => {
-      const volume = Math.random();
-      updateMouth(volume);
-    }, 150); // adjust this speed if needed
+    // Talking (simulate speech loop)
+    let talking = true;
+    function talk() {
+      const mouth = document.getElementById('mouth');
+      if (talking) {
+        mouth.style.opacity = mouth.style.opacity == 1 ? 0 : 1;
+      } else {
+        mouth.style.opacity = 0;
+      }
+      setTimeout(talk, 200);
+    }
+    talk();
   </script>
 </body>
 </html>
